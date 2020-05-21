@@ -38,7 +38,7 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var radius = canvas.height / 2;
 ctx.translate(radius, radius);
-radius = radius * 0.90
+radius = radius * 0.95;
 drawClock();
 
 function drawClock(minuteAdd) {
@@ -77,12 +77,27 @@ function drawFace(ctx, radius) {
   grad.addColorStop(0.5, 'white');
   grad.addColorStop(1, '#333');
   ctx.strokeStyle = grad;
-  ctx.lineWidth = radius*0.1;
+  ctx.lineWidth = radius*0.05;
   ctx.stroke();
   ctx.beginPath();
   ctx.arc(0, 0, radius*0.1, 0, 2*Math.PI);
   ctx.fillStyle = '#333';
   ctx.fill();
+  for(num = 0; num < 60; num++){
+    ctx.beginPath();
+    ang = num * Math.PI / 30;
+    ctx.rotate(ang);
+    ctx.translate(0, -radius*0.77);
+    ctx.rotate(-ang);
+    
+    ctx.arc(0, 0, 2, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ccc';
+    ctx.stroke();
+    ctx.rotate(ang);
+    ctx.translate(0, radius*0.77);
+    ctx.rotate(-ang);
+  }
 }
 
 function drawNumbers(ctx, radius) {
