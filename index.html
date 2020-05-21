@@ -6,13 +6,20 @@
         body {
             padding: 0;
             margin: 0;
+            font-family: "arial"
         }
     input, button {
-        font-size: 20pt;
-        padding: 15px 2px;
+        font-size: 15pt;
+        padding: 15px 0px;
         text-align: center;
+        border-width: 0px;
+    }
+    input {
+        width:50px;
+        margin-right: 2px;
     }
     button {
+        padding: 15px 15px;
         webkit-user-select: none;  /* Chrome all / Safari all */
         -moz-user-select: none;     /* Firefox all */
         -ms-user-select: none;      /* IE 10+ */
@@ -21,13 +28,18 @@
     </style>
 </head>
 <body>
-<div style="padding: 10px; background-color: #aaa; width: 780px" >
-<input id="hour" value="12" type="number" min="0" max="12"  onchange="drawClock();" /><input id="minute" value="00"  type="number" min="0" max="60" onchange="drawClock();"/>
+<div style="padding: 10px; background-color: #bbb; width: 780px" >
+<input id="hour" value="12" type="number" min="0" max="12"  onchange="drawClock();" /><span style="font-size: 15pt;font-weight: bold;">:</span><input id="minute" value="00"  type="number" min="0" max="60" onchange="drawClock();"/>
+<span style="font-size: 15pt;font-weight: bold;">minutes:</span>
 <button onclick="drawClock();">set</button>
-<button onclick="drawClock(1);">+1 min</button>
-<button onclick="drawClock(5);">+5 min</button>
-<button onclick="drawClock(15);">+15 min</button>
-<button onclick="drawClock(30);">+30 min</button>
+<button onclick="drawClock(1);">+1</button>
+<button onclick="drawClock(5);">+5</button>
+<button onclick="drawClock(15);">+15</button>
+<button onclick="drawClock(30);">+30</button>
+<button onclick="drawClock(-1);">-1</button>
+<button onclick="drawClock(-5);">-5</button>
+<button onclick="drawClock(-15);">-15</button>
+<button onclick="drawClock(-30);">-30</button>
 </div>
 <canvas id="canvas" width="800" height="800"
 style="background-color:#333">
@@ -35,10 +47,28 @@ style="background-color:#333">
 
 <script>
 var canvas = document.getElementById("canvas");
+var drawMinutes = 0;
+
+var minuteButtonRect = {
+    x:(canvas.width - canvas.width / 9),
+    y:(canvas.height - canvas.height / 9),
+    width:canvas.width / 9,
+    height:canvas.width / 9
+};
+
+canvas.addEventListener('click', function(evt) {
+    var mousePos = getMousePos(canvas, evt);
+
+    if (isInside(mousePos,minuteButtonRect)) {
+        drawMinutes = 1-drawMinutes;
+        drawClock();
+    }   
+});
 var ctx = canvas.getContext("2d");
 var radius = canvas.height / 2;
 ctx.translate(radius, radius);
 radius = radius * 0.95;
+drawButtons(ctx, radius, canvas.height);
 drawClock();
 
 function drawClock(minuteAdd) {
@@ -51,19 +81,28 @@ function drawClock(minuteAdd) {
   {
     minute = minute % 60;
     hour += 1;
-
-    
+  }
+  if (minute < 0)
+  {
+    minute = 60 - (-minute);
+    hour -= 1;
   }
   if (hour >= 13)
   {
     hour = hour % 12;
   }
+  if (hour < 1)
+  {
+    hour = 12;
+  }
   document.getElementById("minute").value = minute;
   document.getElementById("hour").value = hour;
 
   drawFace(ctx, radius);
-  drawNumbers(ctx, radius);
+  
+  
   drawTime(ctx, radius, hour, minute);
+  drawNumbers(ctx, radius);
 }
 
 function drawFace(ctx, radius) {
@@ -83,21 +122,20 @@ function drawFace(ctx, radius) {
   ctx.arc(0, 0, radius*0.1, 0, 2*Math.PI);
   ctx.fillStyle = '#333';
   ctx.fill();
-  for(num = 0; num < 60; num++){
-    ctx.beginPath();
-    ang = num * Math.PI / 30;
-    ctx.rotate(ang);
-    ctx.translate(0, -radius*0.77);
-    ctx.rotate(-ang);
-    
-    ctx.arc(0, 0, 2, 0, 2 * Math.PI, false);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#ccc';
-    ctx.stroke();
-    ctx.rotate(ang);
-    ctx.translate(0, radius*0.77);
-    ctx.rotate(-ang);
-  }
+ 
+}
+function drawButtons(ctx, radius, height) {
+  ctx.translate(-height/2, -height/2);
+  ctx.font = radius*0.05 + "px arial";
+  ctx.textBaseline="middle";
+  ctx.textAlign="center";
+  
+  ctx.fillStyle = '#bbb'; 
+  console.log(minuteButtonRect);
+  ctx.fillRect(minuteButtonRect.x, minuteButtonRect.y, minuteButtonRect.width, minuteButtonRect.height); 
+  ctx.fillStyle = '#000'; 
+  ctx.fillText('minutes', minuteButtonRect.x+minuteButtonRect.width/2, minuteButtonRect.y + minuteButtonRect.height /2 );
+  ctx.translate(height/2, height/2);
 }
 
 function drawNumbers(ctx, radius) {
@@ -114,6 +152,30 @@ function drawNumbers(ctx, radius) {
     ctx.fillText(num.toString(), 0, 0);
     ctx.rotate(ang);
     ctx.translate(0, radius*0.85);
+    ctx.rotate(-ang);
+  }
+  for(num = 0; num < 60; num++){
+    ctx.beginPath();
+    ang = num * Math.PI / 30;
+    ctx.rotate(ang);
+    ctx.translate(0, -radius*0.77);
+    ctx.rotate(-ang);
+    if (drawMinutes)
+    {
+      ctx.fillStyle = '#999';
+      ctx.font = radius*0.05 + "px arial";
+      ctx.fillText(num.toString(), 0, 0);
+      ctx.fillStyle = '#333';
+    }
+    else
+    {
+      ctx.arc(0, 0, 2, 0, 2 * Math.PI, false);
+    }
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ccc';
+    ctx.stroke();
+    ctx.rotate(ang);
+    ctx.translate(0, radius*0.77);
     ctx.rotate(-ang);
   }
 }
@@ -147,7 +209,26 @@ function drawHand(ctx, pos, length, width, isMinute) {
     ctx.stroke();
     ctx.rotate(-pos);
 }
-</script>
 
+function getMousePos(canvas, event) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+function isInside(pos, rect){
+    return pos.x > rect.x && pos.x < rect.x+rect.width && pos.y < rect.y+rect.height && pos.y > rect.y
+}
+</script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-167295353-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-167295353-1');
+</script>
 </body>
 </html>
