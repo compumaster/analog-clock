@@ -44,7 +44,7 @@ function drawClock(minuteAdd) {
   }
   if (hour >= 13)
   {
-    hour = hour % 12 + 1;
+    hour = hour % 12;
   }
   document.getElementById("minute").value = minute;
   document.getElementById("hour").value = hour;
